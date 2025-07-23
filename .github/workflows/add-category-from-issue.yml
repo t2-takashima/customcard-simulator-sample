@@ -35,11 +35,11 @@ jobs:
         run: |
           echo "${{ github.event.issue.body }}" > issue.txt
 
-          NAME=$(grep 'Category key' issue.txt -A 1 | tail -n1)
-          FRAME_P=$(grep 'Frame Image URL (portrait)' issue.txt -A 1 | tail -n1)
-          FRAME_L=$(grep 'Frame Image URL (landscape)' issue.txt -A 1 | tail -n1)
-          BG_P=$(grep 'Background Image URL (portrait)' issue.txt -A 1 | tail -n1)
-          BG_L=$(grep 'Background Image URL (landscape)' issue.txt -A 1 | tail -n1)
+          NAME=$(awk '/^### Category key/ {getline; getline; print}' issue.txt)
+          FRAME_P=$(awk '/^### Frame Image URL \(portrait\)/ {getline; getline; print}' issue.txt)
+          FRAME_L=$(awk '/^### Frame Image URL \(landscape\)/ {getline; getline; print}' issue.txt)
+          BG_P=$(awk '/^### Background Image URL \(portrait\)/ {getline; getline; print}' issue.txt)
+          BG_L=$(awk '/^### Background Image URL \(landscape\)/ {getline; getline; print}' issue.txt)
           ORIENTATIONS=$(grep -E '^- \[x\] (portrait|landscape)' issue.txt | cut -d' ' -f3 | tr '\n' ',' | sed 's/,$//')
 
           echo "name=$NAME" >> $GITHUB_OUTPUT
