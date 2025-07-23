@@ -80,5 +80,6 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           branch: add-category-${{ steps.parse.outputs.name }}
+          base: main
           title: "Add category: ${{ steps.parse.outputs.name }}"
           body: "This PR was automatically generated from an issue."
