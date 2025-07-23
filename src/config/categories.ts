@@ -50,5 +50,16 @@ export const brands: Record<string, BrandConfig> = {
             landscape: "",
         },
         availableOrientations: ["portrait"],
+    },
+    hikkey_blue: {
+      frameImages: {
+        portrait: "https://contents.nudge-platform.com/custom-card-category/2/file-visa_logo_image_portrait-63db82b2-e364-4dcf-8ea9-cec011044125-dc63f2f6-84b7-4037-bcd2-b2d65843138b-blue_3.png",
+        landscape: ""
+      },
+      backgroundImageUrls: {
+        portrait: "https://contents.nudge-platform.com/custom-card-category/2/file-sample_image-a03bc8a0-5d4b-4611-b581-11c91e97ad55-8ecca456-c7ff-416b-a52b-ddc73770068b-blue-bg2.png",
+        landscape: ""
+      },
+      availableOrientations: [portrait]
     }
 };
