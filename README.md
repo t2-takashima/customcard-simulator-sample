@@ -1,6 +1,6 @@
-# PetCard Simulator Sample
+# CustomCard Simulator Sample
 
-ペットカードのシミュレーションUIを確認するための簡易版Reactアプリケーションです。
+カスタムクレカのシミュレーションUIを確認するための簡易版Reactアプリケーションです。
 
 ## 開発メモ
 
@@ -27,7 +27,7 @@ serve dist
 
 このアプリは GitHub Pages にて以下の URL で公開されています：
 
-https://t2-takashima.github.io/petcard-simulator-sample/
+https://t2-takashima.github.io/customcard-simulator-sample/
 
 デプロイ方法：
 
