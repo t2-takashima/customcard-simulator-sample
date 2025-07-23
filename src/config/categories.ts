@@ -51,4 +51,15 @@ export const brands: Record<string, BrandConfig> = {
         },
         availableOrientations: ["portrait"],
     }
+  test: {
+    frameImages: {
+      portrait: "https://contents.nudge-platform.com/custom-card-category/2/file-visa_logo_image_portrait-63db82b2-e364-4dcf-8ea9-cec011044125-dc63f2f6-84b7-4037-bcd2-b2d65843138b-blue_3.png",
+      landscape: ""
+    },
+    backgroundImageUrls: {
+      portrait: "https://contents.nudge-platform.com/custom-card-category/2/file-visa_logo_image_portrait-63db82b2-e364-4dcf-8ea9-cec011044125-dc63f2f6-84b7-4037-bcd2-b2d65843138b-blue_3.png",
+      landscape: ""
+    },
+    availableOrientations: [portrait]
+  },
 };
