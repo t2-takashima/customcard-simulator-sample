@@ -1,0 +1,44 @@
+name: Add Category
+description: Add a new card design category
+title: "Add Category: pet_card_cat"
+labels: ["category"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Category key
+      placeholder: pet_card_cat
+    validations:
+      required: true
+
+  - type: input
+    id: frame_portrait
+    attributes:
+      label: Frame Image URL (portrait)
+      placeholder: "https://example.com/frame-portrait.png"
+
+  - type: input
+    id: frame_landscape
+    attributes:
+      label: Frame Image URL (landscape)
+      placeholder: "https://example.com/frame-landscape.png"
+
+  - type: input
+    id: background_portrait
+    attributes:
+      label: Background Image URL (portrait)
+      placeholder: "https://example.com/bg-portrait.png"
+
+  - type: input
+    id: background_landscape
+    attributes:
+      label: Background Image URL (landscape)
+      placeholder: "https://example.com/bg-landscape.png"
+
+  - type: checkboxes
+    id: orientations
+    attributes:
+      label: Available Orientations
+      options:
+        - label: portrait
+        - label: landscape
