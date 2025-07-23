@@ -33,19 +33,18 @@ jobs:
       - name: Parse issue body
         id: parse
         run: |
-          echo "${{ github.event.issue.body }}" > issue.txt
+          BODY="${{ github.event.issue.body }}"
 
-          NAME=$(awk '/^### Category key/ {getline; getline; print}' issue.txt)
-          FRAME_P=$(awk '/^### Frame Image URL \(portrait\)/ {getline; getline; print}' issue.txt)
-          FRAME_L=$(awk '/^### Frame Image URL \(landscape\)/ {getline; getline; print}' issue.txt)
-          BG_P=$(awk '/^### Background Image URL \(portrait\)/ {getline; getline; print}' issue.txt)
-          BG_L=$(awk '/^### Background Image URL \(landscape\)/ {getline; getline; print}' issue.txt)
+          NAME=$(echo "$BODY" | awk '/^### Category key/ {getline; print}')
+          FRAME_P=$(echo "$BODY" | awk '/^### Frame Image URL \(portrait\)/ {getline; print}')
+          FRAME_L=$(echo "$BODY" | awk '/^### Frame Image URL \(landscape\)/ {getline; print}')
+          BG_P=$(echo "$BODY" | awk '/^### Background Image URL \(portrait\)/ {getline; print}')
+          BG_L=$(echo "$BODY" | awk '/^### Background Image URL \(landscape\)/ {getline; print}')
 
-          # Replace '_No response_' with empty string
           [ "$FRAME_L" = "_No response_" ] && FRAME_L=""
           [ "$BG_L" = "_No response_" ] && BG_L=""
 
-          ORIENTATIONS=$(grep -E '^- \[x\] (portrait|landscape)' issue.txt | cut -d' ' -f3 | tr '\n' ',' | sed 's/,$//')
+          ORIENTATIONS=$(echo "$BODY" | grep -E '^- \[x\] (portrait|landscape)' | cut -d' ' -f3 | tr '\n' ',' | sed 's/,$//')
 
           echo "name=$NAME" >> $GITHUB_OUTPUT
           echo "frame_portrait=$FRAME_P" >> $GITHUB_OUTPUT
