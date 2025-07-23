@@ -1,0 +1,78 @@
+name: Add Category from Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-category:
+    if: github.event.issue.title startsWith 'Add Category:'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install GitHub CLI
+        uses: cli/cli-action@v1
+
+      - name: Parse issue body
+        id: parse
+        run: |
+          echo "${{ github.event.issue.body }}" > issue.txt
+
+          NAME=$(grep 'Category key' issue.txt -A 1 | tail -n1)
+          FRAME_P=$(grep 'Frame Image URL (portrait)' issue.txt -A 1 | tail -n1)
+          FRAME_L=$(grep 'Frame Image URL (landscape)' issue.txt -A 1 | tail -n1)
+          BG_P=$(grep 'Background Image URL (portrait)' issue.txt -A 1 | tail -n1)
+          BG_L=$(grep 'Background Image URL (landscape)' issue.txt -A 1 | tail -n1)
+          ORIENTATIONS=$(grep -E '^- \[x\] (portrait|landscape)' issue.txt | cut -d' ' -f3 | tr '\n' ',' | sed 's/,$//')
+
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "frame_portrait=$FRAME_P" >> $GITHUB_OUTPUT
+          echo "frame_landscape=$FRAME_L" >> $GITHUB_OUTPUT
+          echo "bg_portrait=$BG_P" >> $GITHUB_OUTPUT
+          echo "bg_landscape=$BG_L" >> $GITHUB_OUTPUT
+          echo "orientations=$ORIENTATIONS" >> $GITHUB_OUTPUT
+
+      - name: Modify categories.ts
+        run: |
+          sed -i '$d' src/config/categories.ts
+
+          echo "  ${{ steps.parse.outputs.name }}: {" >> src/config/categories.ts
+          echo "    frameImages: {" >> src/config/categories.ts
+          echo "      portrait: \"${{ steps.parse.outputs.frame_portrait }}\"," >> src/config/categories.ts
+          echo "      landscape: \"${{ steps.parse.outputs.frame_landscape }}\"" >> src/config/categories.ts
+          echo "    }," >> src/config/categories.ts
+          echo "    backgroundImageUrls: {" >> src/config/categories.ts
+          echo "      portrait: \"${{ steps.parse.outputs.bg_portrait }}\"," >> src/config/categories.ts
+          echo "      landscape: \"${{ steps.parse.outputs.bg_landscape }}\"" >> src/config/categories.ts
+          echo "    }," >> src/config/categories.ts
+          echo "    availableOrientations: [${{ steps.parse.outputs.orientations }}]" >> src/config/categories.ts
+          echo "  }," >> src/config/categories.ts
+          echo "};" >> src/config/categories.ts
+
+      - name: Create branch, commit, and push
+        run: |
+          BRANCH=add-category-${{ steps.parse.outputs.name }}
+          git checkout -b $BRANCH
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add src/config/categories.ts
+          git commit -m "Add category: ${{ steps.parse.outputs.name }}"
+          git push origin $BRANCH
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: add-category-${{ steps.parse.outputs.name }}
+          title: "Add category: ${{ steps.parse.outputs.name }}"
+          body: "This PR was automatically generated from an issue."
