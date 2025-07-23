@@ -1,5 +1,5 @@
-import chipImage from "./assets/chip_yoko.png";
-import chipImagePortrait from "./assets/chip_tate.png";
+import chipImage from "./assets/chip_yoko.svg";
+import chipImagePortrait from "./assets/chip_tate.svg";
 import React, { useRef, useState, useEffect } from "react";
 
 // シンプルなスタイル付きボタン
@@ -236,21 +236,24 @@ export default function CardSimulator() {
       const chipImg = orientation === "landscape" ? chipImgLandscape : chipImgPortrait;
 
       if (chipImg && chipImg.complete) {
-        const chipWidth = (orientation === "landscape"
-          ? (13 / 85.6) * cardSize.width
-          : (10.5 / 53.98) * cardSize.width);
+        const chipScaleFactor = 2.0;
 
-        const chipHeight = (orientation === "landscape"
-          ? (10.5 / 53.98) * cardSize.height
-          : (13 / 85.6) * cardSize.height);
+        const chipNaturalWidth = chipImg.naturalWidth;
+        const chipNaturalHeight = chipImg.naturalHeight;
+        const aspectRatio = chipNaturalWidth / chipNaturalHeight;
+
+        // Decide chip height based on card height in mm, then use aspect ratio to get width
+        const baseHeightMM = 10.5;
+        const chipHeight = (baseHeightMM / (orientation === "landscape" ? 53.98 : 85.6)) * cardSize.height * chipScaleFactor;
+        const chipWidth = chipHeight * aspectRatio;
 
         const chipX = offset.x + (orientation === "landscape"
-          ? ((15 - 3) / 85.6) * cardSize.width
-          : ((27 + 4 - 4) / 53.98) * cardSize.width);
+          ? ((15 - 8) / 85.6) * cardSize.width
+          : ((27 - 6) / 53.98) * cardSize.width);
 
         const chipY = offset.y + (orientation === "landscape"
-          ? ((20 - 3) / 53.98) * cardSize.height
-          : ((15 - 3) / 85.6) * cardSize.height);
+          ? ((20 - 7) / 53.98) * cardSize.height
+          : ((15 - 8) / 85.6) * cardSize.height);
 
         ctx.drawImage(chipImg, chipX, chipY, chipWidth, chipHeight);
       }
