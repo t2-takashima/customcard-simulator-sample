@@ -6,7 +6,6 @@ on:
 
 jobs:
   add-category:
-    if: github.event.issue.title startsWith 'Add Category:'
     runs-on: ubuntu-latest
 
     permissions:
@@ -23,6 +22,13 @@ jobs:
 
       - name: Install GitHub CLI
         uses: cli/cli-action@v1
+
+      - name: Check if issue title starts with "Add Category:"
+        run: |
+          if [[ "${{ github.event.issue.title }}" != Add\ Category:* ]]; then
+            echo "Issue title does not match. Exiting..."
+            exit 0
+          fi
 
       - name: Parse issue body
         id: parse
