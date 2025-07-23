@@ -29,6 +29,9 @@ serve dist
 
 https://t2-takashima.github.io/customcard-simulator-sample/
 
+このプロジェクトでは、GitHub Actions を使用して `gh-pages` ブランチに自動デプロイを行っています。
+`main` ブランチに push されると、`.github/workflows/deploy.yml` に基づいてビルド＆デプロイが実行されます。
+
 デプロイ方法：
 
 ```bash
