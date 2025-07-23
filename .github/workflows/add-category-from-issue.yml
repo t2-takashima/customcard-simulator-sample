@@ -40,6 +40,11 @@ jobs:
           FRAME_L=$(awk '/^### Frame Image URL \(landscape\)/ {getline; getline; print}' issue.txt)
           BG_P=$(awk '/^### Background Image URL \(portrait\)/ {getline; getline; print}' issue.txt)
           BG_L=$(awk '/^### Background Image URL \(landscape\)/ {getline; getline; print}' issue.txt)
+
+          # Replace '_No response_' with empty string
+          [ "$FRAME_L" = "_No response_" ] && FRAME_L=""
+          [ "$BG_L" = "_No response_" ] && BG_L=""
+
           ORIENTATIONS=$(grep -E '^- \[x\] (portrait|landscape)' issue.txt | cut -d' ' -f3 | tr '\n' ',' | sed 's/,$//')
 
           echo "name=$NAME" >> $GITHUB_OUTPUT
