@@ -70,7 +70,7 @@ jobs:
           echo "        portrait: \"${{ steps.parse.outputs.bg_portrait }}\"," >> src/config/categories.ts
           echo "        landscape: \"${{ steps.parse.outputs.bg_landscape }}\"" >> src/config/categories.ts
           echo "      }," >> src/config/categories.ts
-          echo "      availableOrientations: [${{ steps.parse.outputs.orientations }}]" >> src/config/categories.ts
+          echo "      availableOrientations: [\"${{ steps.parse.outputs.orientations }}\"]" >> src/config/categories.ts
           echo "    }" >> src/config/categories.ts
           echo "};" >> src/config/categories.ts
 
@@ -84,5 +84,7 @@ jobs:
           branch: add-category-${{ steps.parse.outputs.name }}
           base: main
           title: "Add category: ${{ steps.parse.outputs.name }}"
-          body: "This PR was automatically generated from an issue."
+          body: |
+            This PR was automatically generated from an issue.
+            Closes #${{ github.event.issue.number }}
           add-paths: src/config/categories.ts
