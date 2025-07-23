@@ -16,3 +16,15 @@ npm run build
 npm install -g serve
 serve dist
 ```
+
+## GitHub Pages での公開
+
+このアプリは GitHub Pages にて以下の URL で公開されています：
+
+https://t2-takashima.github.io/petcard-simulator-sample/
+
+デプロイ方法：
+
+```bash
+npm run deploy
+```
