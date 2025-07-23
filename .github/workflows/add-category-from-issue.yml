@@ -14,8 +14,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -35,11 +33,17 @@ jobs:
         run: |
           BODY="${{ github.event.issue.body }}"
 
-          NAME=$(echo "$BODY" | awk '/^### Category key/ {getline; print}')
-          FRAME_P=$(echo "$BODY" | awk '/^### Frame Image URL \(portrait\)/ {getline; print}')
-          FRAME_L=$(echo "$BODY" | awk '/^### Frame Image URL \(landscape\)/ {getline; print}')
-          BG_P=$(echo "$BODY" | awk '/^### Background Image URL \(portrait\)/ {getline; print}')
-          BG_L=$(echo "$BODY" | awk '/^### Background Image URL \(landscape\)/ {getline; print}')
+          NAME=$(echo "$BODY" | awk '/^### Category key/ {found=1; next} found && NF {print; exit}')
+          FRAME_P=$(echo "$BODY" | awk '/^### Frame Image URL \(portrait\)/ {found=1; next} found && NF {print; exit}')
+          FRAME_L=$(echo "$BODY" | awk '/^### Frame Image URL \(landscape\)/ {found=1; next} found && NF {print; exit}')
+          BG_P=$(echo "$BODY" | awk '/^### Background Image URL \(portrait\)/ {found=1; next} found && NF {print; exit}')
+          BG_L=$(echo "$BODY" | awk '/^### Background Image URL \(landscape\)/ {found=1; next} found && NF {print; exit}')
+
+          echo "Parsed NAME: $NAME"
+          echo "Parsed FRAME_P: $FRAME_P"
+          echo "Parsed FRAME_L: $FRAME_L"
+          echo "Parsed BG_P: $BG_P"
+          echo "Parsed BG_L: $BG_L"
 
           [ "$FRAME_L" = "_No response_" ] && FRAME_L=""
           [ "$BG_L" = "_No response_" ] && BG_L=""
@@ -56,34 +60,29 @@ jobs:
       - name: Modify categories.ts
         run: |
           sed -i '$d' src/config/categories.ts
-
-          echo "  ${{ steps.parse.outputs.name }}: {" >> src/config/categories.ts
-          echo "    frameImages: {" >> src/config/categories.ts
-          echo "      portrait: \"${{ steps.parse.outputs.frame_portrait }}\"," >> src/config/categories.ts
-          echo "      landscape: \"${{ steps.parse.outputs.frame_landscape }}\"" >> src/config/categories.ts
-          echo "    }," >> src/config/categories.ts
-          echo "    backgroundImageUrls: {" >> src/config/categories.ts
-          echo "      portrait: \"${{ steps.parse.outputs.bg_portrait }}\"," >> src/config/categories.ts
-          echo "      landscape: \"${{ steps.parse.outputs.bg_landscape }}\"" >> src/config/categories.ts
-          echo "    }," >> src/config/categories.ts
-          echo "    availableOrientations: [${{ steps.parse.outputs.orientations }}]" >> src/config/categories.ts
-          echo "  }," >> src/config/categories.ts
+          sed -i '$s/^\(\s*}\)/\1,/' src/config/categories.ts
+          echo "    ${{ steps.parse.outputs.name }}: {" >> src/config/categories.ts
+          echo "      frameImages: {" >> src/config/categories.ts
+          echo "        portrait: \"${{ steps.parse.outputs.frame_portrait }}\"," >> src/config/categories.ts
+          echo "        landscape: \"${{ steps.parse.outputs.frame_landscape }}\"" >> src/config/categories.ts
+          echo "      }," >> src/config/categories.ts
+          echo "      backgroundImageUrls: {" >> src/config/categories.ts
+          echo "        portrait: \"${{ steps.parse.outputs.bg_portrait }}\"," >> src/config/categories.ts
+          echo "        landscape: \"${{ steps.parse.outputs.bg_landscape }}\"" >> src/config/categories.ts
+          echo "      }," >> src/config/categories.ts
+          echo "      availableOrientations: [${{ steps.parse.outputs.orientations }}]" >> src/config/categories.ts
+          echo "    }" >> src/config/categories.ts
           echo "};" >> src/config/categories.ts
 
-      - name: Create branch, commit, and push
-        run: |
-          BRANCH=add-category-${{ steps.parse.outputs.name }}
-          git checkout -b $BRANCH
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add src/config/categories.ts
-          git commit -m "Add category: ${{ steps.parse.outputs.name }}"
-          git push origin $BRANCH
+      - name: Confirm file contents
+        run: cat src/config/categories.ts
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
+          commit-message: "Add category: ${{ steps.parse.outputs.name }}"
           branch: add-category-${{ steps.parse.outputs.name }}
           base: main
           title: "Add category: ${{ steps.parse.outputs.name }}"
           body: "This PR was automatically generated from an issue."
+          add-paths: src/config/categories.ts
