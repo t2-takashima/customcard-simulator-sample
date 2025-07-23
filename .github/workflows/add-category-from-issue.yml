@@ -24,11 +24,9 @@ jobs:
         uses: cli/cli-action@v1
 
       - name: Check if issue title starts with "Add Category:"
+        if: startsWith(github.event.issue.title, 'Add Category:')
         run: |
-          if [[ "${{ github.event.issue.title }}" != Add\ Category:* ]]; then
-            echo "Issue title does not match. Exiting..."
-            exit 0
-          fi
+          echo "Issue title matches. Continuing..."
 
       - name: Parse issue body
         id: parse
