@@ -34,3 +34,17 @@ https://t2-takashima.github.io/customcard-simulator-sample/
 ```bash
 npm run deploy
 ```
+
+## シミュレーターの追加方法とアクセス
+
+シミュレーターの種類を増やす場合は、`src/config/brands.ts` に設定を追加してください。
+
+追加した設定のキー名（例：`necorepublic`, `kidogs`）を使って、以下のようなURLでシミュレーターにアクセスできます：
+
+```
+https://t2-takashima.github.io/customcard-simulator-sample/キー名
+```
+
+例：
+- https://t2-takashima.github.io/customcard-simulator-sample/necorepublic
+- https://t2-takashima.github.io/customcard-simulator-sample/kidogs

@@ -1,31 +1,79 @@
-import chipImage from "./assets/chip_yoko.svg";
-import chipImagePortrait from "./assets/chip_tate.svg";
+const canvasContainerStyle: React.CSSProperties = {
+  backgroundColor: "#f3f4f6",
+  position: "relative" as const,
+  overflow: "hidden",
+  marginBottom: 16,
+  touchAction: "none",
+};
+import { brands } from "./config/brands";
+// スタイル定義
+const styles: Record<string, React.CSSProperties> = {
+  button: {
+    padding: "8px 16px",
+    backgroundColor: "#6b7280",
+    color: "white",
+    borderRadius: "4px",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  labelButton: {
+    padding: "8px 16px",
+    backgroundColor: "#6b7280",
+    color: "white",
+    borderRadius: "4px",
+    display: "inline-block",
+    fontSize: "14px",
+  },
+};
+const CANVAS_OFFSET = { x: 50, y: 50 };
+const CARD_SIZE = {
+  portrait: { width: 220, height: 350 },
+  landscape: { width: 350, height: 220 }
+};
+const CANVAS_SIZE = {
+  portrait: { width: 320, height: 450 },
+  landscape: { width: 450, height: 320 }
+};
+const BASE_HEIGHT_MM = 10.5;
+
+const segments = window.location.pathname.split("/").filter(Boolean);
+const brandKey = segments.length > 1 ? segments[1] : "sample";
+const config = brands[brandKey] ?? brands["sample"];
+const availableOrientations = config.availableOrientations ?? ["portrait"];
+const frameImages = config.frameImages;
+const backgroundImageUrls = config.backgroundImageUrls;
+
+const loadImage = (src: string): Promise<HTMLImageElement> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => resolve(img);
+  });
+import chipImageLandscape from "./assets/chip_landscape.svg";
+import chipImagePortrait from "./assets/chip_portrait.svg";
 import React, { useRef, useState, useEffect } from "react";
 
 // シンプルなスタイル付きボタン
 const Button = (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
   <button
     {...props}
-    style={{
-      padding: "8px 16px",
-      backgroundColor: "#6b7280", // Gray color
-      color: "white",
-      borderRadius: "4px",
-      border: "none",
-      cursor: "pointer",
-      fontSize: "14px", // Unify font size
-    }}
+    style={styles.button}
   />
 );
 
 export default function CardSimulator() {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const [orientation, setOrientation] = useState<"landscape" | "portrait">("landscape");
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">(
+    availableOrientations.includes("portrait") ? "portrait" : "landscape"
+  );
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [initialDisplaySize, setInitialDisplaySize] = useState({ width: 0, height: 0 });
-  const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement | null>(null);
+  const [frameImage, setFrameImage] = useState<HTMLImageElement | null>(null);
   const [rotation, setRotation] = useState(0);
+
+  const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement | null>(null);
 
   const [chipImgLandscape, setChipImgLandscape] = useState<HTMLImageElement | null>(null);
   const [chipImgPortrait, setChipImgPortrait] = useState<HTMLImageElement | null>(null);
@@ -36,23 +84,9 @@ export default function CardSimulator() {
   const pinchDistance = useRef<number | null>(null);
   const initialAngle = useRef<number | null>(null);
 
-  const backgrounds = {
-    landscape:
-      "https://contents.nudge-platform.com/custom-card-category/12/file-visa_logo_image_landscape-2739aec8-2b84-4ef0-9d21-e935a371a622-cd8a0c0c-df0c-48a8-a639-e171761fb81a-e6a8aae38386e383b3e38395e3829ae383ac5fe3838de382b3e383aae3838fe3829a5f7265.png",
-    portrait:
-      "https://contents.nudge-platform.com/custom-card-category/12/file-visa_logo_image_portrait-d48c13eb-a0af-459a-9766-a222c323c873-8ee8c35e-2198-41bc-9c43-050630d34ca0-e7b8a6e38386e383b3e38395e3829ae383ac5fe3838de382b3e383aae3838fe3829a5f7265.png",
-  };
-
-  const cardSize = orientation === "landscape"
-    ? { width: 350, height: 220 }
-    : { width: 220, height: 350 };
-
-  const canvasSize = {
-    width: cardSize.width + 100,
-    height: cardSize.height + 100,
-  };
-
-  const offset = { x: 50, y: 50 };
+  const canvasSize = CANVAS_SIZE[orientation];
+  const cardSize = CARD_SIZE[orientation];
+  const offset = CANVAS_OFFSET;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -186,7 +220,11 @@ export default function CardSimulator() {
   };
 
   const toggleOrientation = () => {
-    setOrientation((prev) => (prev === "landscape" ? "portrait" : "landscape"));
+    setOrientation((prev) => {
+      const currentIndex = availableOrientations.indexOf(prev);
+      const nextIndex = (currentIndex + 1) % availableOrientations.length;
+      return availableOrientations[nextIndex];
+    });
     setPosition({ x: 0, y: 0 });
     setRotation(0);
   };
@@ -198,10 +236,46 @@ export default function CardSimulator() {
     if (!canvas || !ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.clip();
 
     // まず背景色で塗りつぶす
     ctx.fillStyle = "#e5e7eb";
     ctx.fillRect(offset.x, offset.y, cardSize.width, cardSize.height);
+
+    if (backgroundImage && backgroundImage.complete) {
+      const aspect = backgroundImage.naturalWidth / backgroundImage.naturalHeight;
+      // Always use cardSize.width and cardSize.height to ensure background fits card area
+      const targetWidth = cardSize.width;
+      const targetHeight = cardSize.height;
+      // Compute the maximum size that fits within card area while keeping aspect ratio
+      let drawWidth = targetWidth;
+      let drawHeight = targetHeight;
+      if (targetWidth / aspect < targetHeight) {
+        drawHeight = targetWidth / aspect;
+        drawWidth = targetWidth;
+      } else {
+        drawWidth = targetHeight * aspect;
+        drawHeight = targetHeight;
+      }
+      // Align to top-left corner of card
+      const drawX = offset.x;
+      const drawY = offset.y;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(offset.x, offset.y, cardSize.width, cardSize.height);
+      ctx.clip();
+      ctx.drawImage(
+        backgroundImage,
+        drawX,
+        drawY,
+        drawWidth,
+        drawHeight
+      );
+      ctx.restore();
+    }
 
     // 画像が正常に読み込まれている場合のみ描画
     if (image && image.complete && image.naturalWidth) {
@@ -229,11 +303,15 @@ export default function CardSimulator() {
     }
 
     // 背景画像を一番上に描画
-    if (backgroundImage) {
-      ctx.drawImage(backgroundImage, offset.x, offset.y, cardSize.width, cardSize.height);
+    if (frameImage) {
+      const aspect = frameImage.naturalWidth / frameImage.naturalHeight;
+      const targetWidth = cardSize.width;
+      const newHeight = targetWidth / aspect;
+      const newY = offset.y + cardSize.height - newHeight;
+      ctx.drawImage(frameImage, offset.x, newY, targetWidth, newHeight);
 
       // Draw IC chip (proportional placement) using preloaded images
-      const chipImg = orientation === "landscape" ? chipImgLandscape : chipImgPortrait;
+      const chipImg = orientation === "portrait" ? chipImgPortrait : chipImgLandscape;
 
       if (chipImg && chipImg.complete) {
         const chipScaleFactor = 2.0;
@@ -243,62 +321,58 @@ export default function CardSimulator() {
         const aspectRatio = chipNaturalWidth / chipNaturalHeight;
 
         // Decide chip height based on card height in mm, then use aspect ratio to get width
-        const baseHeightMM = 10.5;
-        const chipHeight = (baseHeightMM / (orientation === "landscape" ? 53.98 : 85.6)) * cardSize.height * chipScaleFactor;
+        const chipHeight = (BASE_HEIGHT_MM / (orientation === "portrait" ? 85.6 : 53.98)) * cardSize.height * chipScaleFactor;
         const chipWidth = chipHeight * aspectRatio;
 
-        const chipX = offset.x + (orientation === "landscape"
-          ? ((15 - 8) / 85.6) * cardSize.width
-          : ((27 - 6) / 53.98) * cardSize.width);
+        const chipX = offset.x + (orientation === "portrait"
+          ? ((27 - 6) / 53.98) * cardSize.width
+          : ((15 - 8) / 85.6) * cardSize.width);
 
-        const chipY = offset.y + (orientation === "landscape"
-          ? ((20 - 7) / 53.98) * cardSize.height
-          : ((15 - 8) / 85.6) * cardSize.height);
+        const chipY = offset.y + (orientation === "portrait"
+          ? ((15 - 8) / 85.6) * cardSize.height
+          : ((20 - 7) / 53.98) * cardSize.height);
 
         ctx.drawImage(chipImg, chipX, chipY, chipWidth, chipHeight);
       }
     }
-  }, [orientation, image, scale, position, initialDisplaySize, backgroundImage, rotation, chipImgLandscape, chipImgPortrait]);
+
+    ctx.restore();
+  }, [orientation, image, scale, position, initialDisplaySize, frameImage, rotation, chipImgLandscape, chipImgPortrait, backgroundImage]);
 
   // 背景画像プリロード
   useEffect(() => {
-    const loadImage = (src: string) =>
-      new Promise<HTMLImageElement>((resolve) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => resolve(img);
-      });
-
     const load = async () => {
-      const bg = await loadImage(backgrounds[orientation]);
-      setBackgroundImage(bg);
-    };
+      const frameSrc = frameImages[orientation];
+      if (frameSrc) {
+        const frame = await loadImage(frameSrc);
+        setFrameImage(frame);
+      } else {
+        setFrameImage(null);
+      }
 
+      const bgUrl = backgroundImageUrls[orientation];
+      if (bgUrl) {
+        const background = await loadImage(bgUrl);
+        setBackgroundImage(background);
+      } else {
+        setBackgroundImage(null);
+      }
+    };
     load();
   }, [orientation]);
 
   useEffect(() => {
-    const loadChipImage = (src: string): Promise<HTMLImageElement> =>
-      new Promise((resolve) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => resolve(img);
-      });
-
-    loadChipImage(chipImage).then(setChipImgLandscape);
-    loadChipImage(chipImagePortrait).then(setChipImgPortrait);
+    loadImage(chipImageLandscape).then(setChipImgLandscape);
+    loadImage(chipImagePortrait).then(setChipImgPortrait);
   }, []);
 
   return (
     <div style={{ padding: 24, display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div
         style={{
-          ...canvasSize,
-          backgroundColor: "#f3f4f6",
-          position: "relative",
-          overflow: "hidden",
-          marginBottom: 16,
-          touchAction: "none"
+          ...canvasContainerStyle,
+          width: canvasSize.width,
+          height: canvasSize.height,
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -316,7 +390,7 @@ export default function CardSimulator() {
             left: offset.x,
             width: cardSize.width,
             height: cardSize.height,
-            border: "2px solid red",
+            outline: "2px solid red",
             pointerEvents: "none",
           }}
         />
@@ -324,16 +398,7 @@ export default function CardSimulator() {
 
       <div style={{ display: "flex", gap: 16, marginBottom: 16, justifyContent: "center" }}>
         <label style={{ cursor: "pointer" }}>
-          <span
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#6b7280",
-              color: "white",
-              borderRadius: "4px",
-              display: "inline-block",
-              fontSize: "14px",
-            }}
-          >
+          <span style={styles.labelButton}>
             画像を変更
           </span>
           <input
@@ -343,7 +408,9 @@ export default function CardSimulator() {
             style={{ display: "none" }}
           />
         </label>
-        <Button onClick={toggleOrientation}>向きを変更</Button>
+        {availableOrientations.length > 1 && (
+          <Button onClick={toggleOrientation}>向きを変更</Button>
+        )}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
