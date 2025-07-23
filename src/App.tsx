@@ -5,7 +5,7 @@ const canvasContainerStyle: React.CSSProperties = {
   marginBottom: 16,
   touchAction: "none",
 };
-import { brands } from "./config/brands";
+import { brands as categories } from "./config/categories";
 // スタイル定義
 const styles: Record<string, React.CSSProperties> = {
   button: {
@@ -37,9 +37,14 @@ const CANVAS_SIZE = {
 };
 const BASE_HEIGHT_MM = 10.5;
 
-const segments = window.location.pathname.split("/").filter(Boolean);
-const brandKey = segments.length > 1 ? segments[1] : "sample";
-const config = brands[brandKey] ?? brands["sample"];
+const url = new URL(window.location.href);
+const queryCategory = url.searchParams.get("category");
+
+const pathSegments = url.pathname.split("/").filter(Boolean);
+const pathCategory = pathSegments.length > 1 ? pathSegments[1] : null;
+
+const categoryKey = queryCategory || pathCategory || "sample";
+const config = categories[categoryKey] ?? categories["sample"];
 const availableOrientations = config.availableOrientations ?? ["portrait"];
 const frameImages = config.frameImages;
 const backgroundImageUrls = config.backgroundImageUrls;
