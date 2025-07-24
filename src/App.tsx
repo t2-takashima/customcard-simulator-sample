@@ -1,11 +1,12 @@
+const CANVAS_SIZE = { width: 400, height: 400 };
 const canvasContainerStyle: React.CSSProperties = {
   backgroundColor: "#f3f4f6",
   position: "relative" as const,
   overflow: "hidden",
   marginBottom: 16,
   touchAction: "none",
-  width: "450px",
-  height: "450px",
+  width: CANVAS_SIZE.width + "px",
+  height: CANVAS_SIZE.height + "px",
 };
 import { brands as categories } from "./config/categories";
 // スタイル定義
@@ -86,8 +87,8 @@ export default function CardSimulator() {
   const pinchDistance = useRef<number | null>(null);
   const initialAngle = useRef<number | null>(null);
 
-  // Canvas area is fixed to 450x450
-  const canvasSize = { width: 450, height: 450 };
+  // Canvas area is fixed to CANVAS_SIZE
+  const canvasSize = CANVAS_SIZE;
   const cardSize = CARD_SIZE[orientation];
   // Center the card area in the canvas
   const offset = {
@@ -114,9 +115,9 @@ export default function CardSimulator() {
         setInitialDisplaySize({ width: displayedWidth, height: displayedHeight });
         setScale(1);
 
-        // Center the image within the fixed 450x450 canvas
-        const centerX = (450 - displayedWidth) / 2;
-        const centerY = (450 - displayedHeight) / 2;
+        // Center the image within the fixed CANVAS_SIZE canvas
+        const centerX = (CANVAS_SIZE.width - displayedWidth) / 2;
+        const centerY = (CANVAS_SIZE.height - displayedHeight) / 2;
         setPosition({ x: centerX, y: centerY });
         setRotation(0);
 
@@ -386,12 +387,12 @@ export default function CardSimulator() {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <canvas ref={canvasRef} width={450} height={450} />
+        <canvas ref={canvasRef} width={CANVAS_SIZE.width} height={CANVAS_SIZE.height} />
         <div
           style={{
             position: "absolute",
-            top: (450 - cardSize.height) / 2,
-            left: (450 - cardSize.width) / 2,
+            top: (CANVAS_SIZE.height - cardSize.height) / 2,
+            left: (CANVAS_SIZE.width - cardSize.width) / 2,
             width: cardSize.width,
             height: cardSize.height,
             outline: "2px solid red",
