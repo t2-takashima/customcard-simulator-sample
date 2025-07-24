@@ -36,7 +36,8 @@ a:hover {
 
 body {
   min-width: 320px;
-  min-height: 100vh;
+  /* min-height: 100dvh; */
+  /* Removed to avoid excessive vertical height */
 }
 
 h1 {
