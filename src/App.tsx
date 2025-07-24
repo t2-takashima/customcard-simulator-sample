@@ -4,6 +4,8 @@ const canvasContainerStyle: React.CSSProperties = {
   overflow: "hidden",
   marginBottom: 16,
   touchAction: "none",
+  width: "450px",
+  height: "450px",
 };
 import { brands as categories } from "./config/categories";
 // スタイル定義
@@ -26,14 +28,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
   },
 };
-const CANVAS_OFFSET = { x: 50, y: 50 };
 const CARD_SIZE = {
   portrait: { width: 220, height: 350 },
   landscape: { width: 350, height: 220 }
-};
-const CANVAS_SIZE = {
-  portrait: { width: 320, height: 450 },
-  landscape: { width: 450, height: 320 }
 };
 const BASE_HEIGHT_MM = 10.5;
 
@@ -89,9 +86,14 @@ export default function CardSimulator() {
   const pinchDistance = useRef<number | null>(null);
   const initialAngle = useRef<number | null>(null);
 
-  const canvasSize = CANVAS_SIZE[orientation];
+  // Canvas area is fixed to 450x450
+  const canvasSize = { width: 450, height: 450 };
   const cardSize = CARD_SIZE[orientation];
-  const offset = CANVAS_OFFSET;
+  // Center the card area in the canvas
+  const offset = {
+    x: (canvasSize.width - cardSize.width) / 2,
+    y: (canvasSize.height - cardSize.height) / 2,
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -112,8 +114,9 @@ export default function CardSimulator() {
         setInitialDisplaySize({ width: displayedWidth, height: displayedHeight });
         setScale(1);
 
-        const centerX = (canvasSize.width - displayedWidth) / 2;
-        const centerY = (canvasSize.height - displayedHeight) / 2;
+        // Center the image within the fixed 450x450 canvas
+        const centerX = (450 - displayedWidth) / 2;
+        const centerY = (450 - displayedHeight) / 2;
         setPosition({ x: centerX, y: centerY });
         setRotation(0);
 
@@ -230,8 +233,6 @@ export default function CardSimulator() {
       const nextIndex = (currentIndex + 1) % availableOrientations.length;
       return availableOrientations[nextIndex];
     });
-    setPosition({ x: 0, y: 0 });
-    setRotation(0);
   };
 
   // キャンバス描画
@@ -265,7 +266,7 @@ export default function CardSimulator() {
         drawWidth = targetHeight * aspect;
         drawHeight = targetHeight;
       }
-      // Align to top-left corner of card
+      // Align to top-left corner of card area (centered)
       const drawX = offset.x;
       const drawY = offset.y;
       ctx.save();
@@ -307,7 +308,7 @@ export default function CardSimulator() {
       ctx.restore();
     }
 
-    // 背景画像を一番上に描画
+    // フレーム画像を一番上に描画
     if (frameImage) {
       const aspect = frameImage.naturalWidth / frameImage.naturalHeight;
       const targetWidth = cardSize.width;
@@ -376,8 +377,6 @@ export default function CardSimulator() {
       <div
         style={{
           ...canvasContainerStyle,
-          width: canvasSize.width,
-          height: canvasSize.height,
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -387,12 +386,12 @@ export default function CardSimulator() {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} />
+        <canvas ref={canvasRef} width={450} height={450} />
         <div
           style={{
             position: "absolute",
-            top: offset.y,
-            left: offset.x,
+            top: (450 - cardSize.height) / 2,
+            left: (450 - cardSize.width) / 2,
             width: cardSize.width,
             height: cardSize.height,
             outline: "2px solid red",
