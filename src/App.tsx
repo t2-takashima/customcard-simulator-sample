@@ -1,6 +1,6 @@
 const getCanvasSize = () => {
   const rawBaseWidth = window.innerWidth * 0.9;
-  const clampedWidth = Math.min(Math.max(rawBaseWidth, 320), 450);
+  const clampedWidth = Math.min(Math.max(rawBaseWidth, 200), 450);
   return { width: clampedWidth, height: clampedWidth };
 };
 import React, { useRef, useState, useEffect } from "react";
@@ -34,7 +34,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
   },
   container: {
-    padding: 24,
+    padding: 2,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
