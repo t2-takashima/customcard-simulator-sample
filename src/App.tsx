@@ -1,12 +1,17 @@
-const CANVAS_SIZE = { width: 400, height: 400 };
+const getCanvasSize = () => {
+  const rawBaseWidth = window.innerWidth * 0.9;
+  const clampedWidth = Math.min(Math.max(rawBaseWidth, 320), 450);
+  return { width: clampedWidth, height: clampedWidth };
+};
+import React, { useRef, useState, useEffect } from "react";
 const canvasContainerStyle: React.CSSProperties = {
   backgroundColor: "#f3f4f6",
   position: "relative" as const,
   overflow: "hidden",
   marginBottom: 16,
   touchAction: "none",
-  width: CANVAS_SIZE.width + "px",
-  height: CANVAS_SIZE.height + "px",
+  width: (typeof window !== "undefined" ? getCanvasSize().width : 320) + "px",
+  height: (typeof window !== "undefined" ? getCanvasSize().height : 320) + "px",
 };
 import { brands as categories } from "./config/categories";
 // スタイル定義
@@ -28,10 +33,42 @@ const styles: Record<string, React.CSSProperties> = {
     display: "inline-block",
     fontSize: "14px",
   },
+  container: {
+    padding: 24,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  controls: {
+    display: "flex",
+    gap: 16,
+    marginBottom: 16,
+    justifyContent: "center",
+  },
+  rangeGroup: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 8,
+  },
 };
-const CARD_SIZE = {
-  portrait: { width: 220, height: 350 },
-  landscape: { width: 350, height: 220 }
+const CARD_SCALE = 0.9;
+const BASE_CARD_SIZE = {
+  portrait: { width: 336, height: 534 }, // standard credit card size ratio
+  landscape: { width: 534, height: 336 },
+};
+const getCardSize = (orientation: "portrait" | "landscape", canvasSize: { width: number, height: number }) => {
+  const base = BASE_CARD_SIZE[orientation];
+
+  let width = canvasSize.width * CARD_SCALE;
+  let height = width * (base.height / base.width);
+
+  if (height > canvasSize.height * CARD_SCALE) {
+    height = canvasSize.height * CARD_SCALE;
+    width = height * (base.width / base.height);
+  }
+
+  return { width, height };
 };
 const BASE_HEIGHT_MM = 10.5;
 
@@ -55,7 +92,6 @@ const loadImage = (src: string): Promise<HTMLImageElement> =>
   });
 import chipImageLandscape from "./assets/chip_landscape.svg";
 import chipImagePortrait from "./assets/chip_portrait.svg";
-import React, { useRef, useState, useEffect } from "react";
 
 // シンプルなスタイル付きボタン
 const Button = (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
@@ -66,6 +102,7 @@ const Button = (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
 );
 
 export default function CardSimulator() {
+  const [canvasSize, setCanvasSize] = useState(getCanvasSize());
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [orientation, setOrientation] = useState<"portrait" | "landscape">(
     availableOrientations.includes("portrait") ? "portrait" : "landscape"
@@ -87,9 +124,15 @@ export default function CardSimulator() {
   const pinchDistance = useRef<number | null>(null);
   const initialAngle = useRef<number | null>(null);
 
-  // Canvas area is fixed to CANVAS_SIZE
-  const canvasSize = CANVAS_SIZE;
-  const cardSize = CARD_SIZE[orientation];
+  useEffect(() => {
+    const handleResize = () => {
+      setCanvasSize(getCanvasSize());
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const cardSize = getCardSize(orientation, canvasSize);
   // Center the card area in the canvas
   const offset = {
     x: (canvasSize.width - cardSize.width) / 2,
@@ -116,8 +159,8 @@ export default function CardSimulator() {
         setScale(1);
 
         // Center the image within the fixed CANVAS_SIZE canvas
-        const centerX = (CANVAS_SIZE.width - displayedWidth) / 2;
-        const centerY = (CANVAS_SIZE.height - displayedHeight) / 2;
+        const centerX = (canvasSize.width - displayedWidth) / 2;
+        const centerY = (canvasSize.height - displayedHeight) / 2;
         setPosition({ x: centerX, y: centerY });
         setRotation(0);
 
@@ -347,6 +390,7 @@ export default function CardSimulator() {
   }, [orientation, image, scale, position, initialDisplaySize, frameImage, rotation, chipImgLandscape, chipImgPortrait, backgroundImage]);
 
   // 背景画像プリロード
+  // プリロード: フレーム画像と背景画像
   useEffect(() => {
     const load = async () => {
       const frameSrc = frameImages[orientation];
@@ -366,7 +410,7 @@ export default function CardSimulator() {
       }
     };
     load();
-  }, [orientation]);
+  }, [orientation, canvasSize, frameImages, backgroundImageUrls]);
 
   useEffect(() => {
     loadImage(chipImageLandscape).then(setChipImgLandscape);
@@ -374,10 +418,12 @@ export default function CardSimulator() {
   }, []);
 
   return (
-    <div style={{ padding: 24, display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <div style={styles.container}>
       <div
         style={{
           ...canvasContainerStyle,
+          width: canvasSize.width + "px",
+          height: canvasSize.height + "px",
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -387,12 +433,12 @@ export default function CardSimulator() {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <canvas ref={canvasRef} width={CANVAS_SIZE.width} height={CANVAS_SIZE.height} />
+        <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} />
         <div
           style={{
             position: "absolute",
-            top: (CANVAS_SIZE.height - cardSize.height) / 2,
-            left: (CANVAS_SIZE.width - cardSize.width) / 2,
+            top: (canvasSize.height - cardSize.height) / 2,
+            left: (canvasSize.width - cardSize.width) / 2,
             width: cardSize.width,
             height: cardSize.height,
             outline: "2px solid red",
@@ -401,7 +447,7 @@ export default function CardSimulator() {
         />
       </div>
 
-      <div style={{ display: "flex", gap: 16, marginBottom: 16, justifyContent: "center" }}>
+      <div style={styles.controls}>
         <label style={{ cursor: "pointer" }}>
           <span style={styles.labelButton}>
             画像を変更
@@ -418,7 +464,7 @@ export default function CardSimulator() {
         )}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+      <div style={styles.rangeGroup}>
         <div>
           <label>サイズ変更</label>
           <input
