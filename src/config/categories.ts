@@ -61,5 +61,16 @@ export const brands: Record<string, BrandConfig> = {
         landscape: ""
       },
       availableOrientations: ["portrait"]
+    },
+    24Karat: {
+      frameImages: {
+        portrait: "https://contents.nudge-platform.com/custom-card-category/8/file-visa_logo_image_portrait-748360e8-033a-4eab-aef4-937e6cc4cbee-3cfe8b9a-f52c-41bb-b5f0-f5649dc862cc-img_24karat_band.png",
+        landscape: ""
+      },
+      backgroundImageUrls: {
+        portrait: "https://contents.nudge-platform.com/custom-card-category/8/file-card_background_image_portrait-d0b71345-6fba-45cd-8d18-3a20a8bec7eb-e31889b7-1336-4560-ad77-387d555385ac-img_24karat_bg.png",
+        landscape: ""
+      },
+      availableOrientations: ["portrait"]
     }
 };
