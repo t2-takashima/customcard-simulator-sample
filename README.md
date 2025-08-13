@@ -40,7 +40,9 @@ npm run deploy
 
 ## シミュレーターの追加方法とアクセス
 
-シミュレーターの種類を増やす場合は、`src/config/categories.ts` に設定を追加してください。
+シミュレーターの種類を増やす場合は、Add Category の Issue テンプレートを使用して Issue を作成してください。
+自動でプルリクエストが作成されます。
+手動で追加する場合は `src/config/categories.ts` に設定を追加してください。
 
 追加した設定のキー名（例：`necorepublic`, `kidogs`）を使って、以下のようなURLでシミュレーターにアクセスできます：
 

@@ -61,17 +61,17 @@ jobs:
         run: |
           sed -i '$d' src/config/categories.ts
           sed -i '$s/^\(\s*}\)/\1,/' src/config/categories.ts
-          echo "    ${{ steps.parse.outputs.name }}: {" >> src/config/categories.ts
-          echo "      frameImages: {" >> src/config/categories.ts
-          echo "        portrait: \"${{ steps.parse.outputs.frame_portrait }}\"," >> src/config/categories.ts
-          echo "        landscape: \"${{ steps.parse.outputs.frame_landscape }}\"" >> src/config/categories.ts
-          echo "      }," >> src/config/categories.ts
-          echo "      backgroundImageUrls: {" >> src/config/categories.ts
-          echo "        portrait: \"${{ steps.parse.outputs.bg_portrait }}\"," >> src/config/categories.ts
-          echo "        landscape: \"${{ steps.parse.outputs.bg_landscape }}\"" >> src/config/categories.ts
-          echo "      }," >> src/config/categories.ts
-          echo "      availableOrientations: [\"${{ steps.parse.outputs.orientations }}\"]" >> src/config/categories.ts
-          echo "    }" >> src/config/categories.ts
+          echo "  \"${{ steps.parse.outputs.name }}\": {" >> src/config/categories.ts
+          echo "    frameImages: {" >> src/config/categories.ts
+          echo "      portrait: \"${{ steps.parse.outputs.frame_portrait }}\"," >> src/config/categories.ts
+          echo "      landscape: \"${{ steps.parse.outputs.frame_landscape }}\"" >> src/config/categories.ts
+          echo "    }," >> src/config/categories.ts
+          echo "    backgroundImageUrls: {" >> src/config/categories.ts
+          echo "      portrait: \"${{ steps.parse.outputs.bg_portrait }}\"," >> src/config/categories.ts
+          echo "      landscape: \"${{ steps.parse.outputs.bg_landscape }}\"" >> src/config/categories.ts
+          echo "    }," >> src/config/categories.ts
+          echo "    availableOrientations: [\"${{ steps.parse.outputs.orientations }}\"]" >> src/config/categories.ts
+          echo "  }" >> src/config/categories.ts
           echo "};" >> src/config/categories.ts
 
       - name: Confirm file contents

@@ -57,6 +57,8 @@ const BASE_CARD_SIZE = {
   portrait: { width: 336, height: 534 }, // standard credit card size ratio
   landscape: { width: 534, height: 336 },
 };
+const MIN_SCALE = 0.1;
+const MAX_SCALE = 3;
 const getCardSize = (orientation: "portrait" | "landscape", canvasSize: { width: number, height: number }) => {
   const base = BASE_CARD_SIZE[orientation];
 
@@ -217,7 +219,7 @@ export default function CardSimulator() {
 
       // スケーリング
       const scaleChange = newDistance / pinchDistance.current;
-      const newScale = Math.min(Math.max(scale * scaleChange, 0.5), 3);
+      const newScale = Math.min(Math.max(scale * scaleChange, MIN_SCALE), MAX_SCALE);
 
       const drawWidth = initialDisplaySize.width * scale;
       const drawHeight = initialDisplaySize.height * scale;
@@ -469,8 +471,8 @@ export default function CardSimulator() {
           <label>サイズ変更</label>
           <input
             type="range"
-            min="0.5"
-            max="3"
+            min={MIN_SCALE}
+            max={MAX_SCALE}
             step="0.05"
             value={scale}
             onChange={handleScaleChange}
