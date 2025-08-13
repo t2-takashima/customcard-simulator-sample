@@ -72,5 +72,16 @@ export const brands: Record<string, BrandConfig> = {
       landscape: ""
     },
     availableOrientations: ["portrait"]
+  },
+  "test_20250813": {
+    frameImages: {
+      portrait: "https://test.com",
+      landscape: ""
+    },
+    backgroundImageUrls: {
+      portrait: "test_20250813",
+      landscape: ""
+    },
+    availableOrientations: ["portrait"]
   }
 };
