@@ -62,7 +62,7 @@ export const brands: Record<string, BrandConfig> = {
     },
     availableOrientations: ["portrait"]
   },
-  "24Karat": {
+  "24karat": {
     frameImages: {
       portrait: "https://contents.nudge-platform.com/custom-card-category/8/file-visa_logo_image_portrait-748360e8-033a-4eab-aef4-937e6cc4cbee-3cfe8b9a-f52c-41bb-b5f0-f5649dc862cc-img_24karat_band.png",
       landscape: ""
